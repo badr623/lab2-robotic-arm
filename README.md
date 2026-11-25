@@ -1,5 +1,14 @@
 # Robotic Arm: URDF, Simulation and Hardware Control (ROS 2 Jazzy)
 
+**Course:** Design of Mechatronics Systems, Lab 2
+
+## Team
+| Name | ID |
+|---|---|
+| Badr Ali Seddik | 2304142 |
+| Youssef El-Sayed Gaber Abu El-Dahab | 2304230 |
+| Mohamed Alsyed Mohamed | 2204074 |
+
 A 4-joint robotic arm modelled in URDF, simulated in Gazebo (gz sim) and RViz2,
 controlled through `/arm_controller/joint_trajectory`, and bridged to real servos
 through an Arduino Uno.
@@ -25,7 +34,7 @@ sudo usermod -aG dialout $USER   # then log out and in (serial access)
 
 ## Build
 ```bash
-git clone <this-repo> lab2_ws && cd lab2_ws
+git clone https://github.com/badr623/lab2-robotic-arm.git lab2_ws && cd lab2_ws
 source /opt/ros/jazzy/setup.bash
 colcon build
 source install/setup.bash
