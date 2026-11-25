@@ -1,0 +1,113 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="arm">
+
+  <!-- Dimensions (m) -->
+  <xacro:property name="base_h" value="0.08"/>
+  <xacro:property name="base_r" value="0.04"/>
+  <xacro:property name="l1" value="0.12"/>
+  <xacro:property name="l2" value="0.15"/>
+  <xacro:property name="l3" value="0.09"/>
+  <xacro:property name="ee" value="0.06"/>
+  <xacro:property name="w" value="0.03"/>
+
+  <material name="grey"><color rgba="0.5 0.5 0.5 1"/></material>
+  <material name="blue"><color rgba="0.2 0.4 0.8 1"/></material>
+  <material name="orange"><color rgba="0.9 0.5 0.1 1"/></material>
+
+  <xacro:macro name="box_link" params="name h mass color">
+    <link name="${name}">
+      <visual>
+        <origin xyz="0 0 ${h/2}"/>
+        <geometry><box size="${w} ${w} ${h}"/></geometry>
+        <material name="${color}"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 ${h/2}"/>
+        <geometry><box size="${w} ${w} ${h}"/></geometry>
+      </collision>
+      <inertial>
+        <origin xyz="0 0 ${h/2}"/>
+        <mass value="${mass}"/>
+        <inertia ixx="${mass*(w*w+h*h)/12}" ixy="0" ixz="0"
+                 iyy="${mass*(w*w+h*h)/12}" iyz="0"
+                 izz="${mass*(w*w+w*w)/12}"/>
+      </inertial>
+    </link>
+  </xacro:macro>
+
+  <xacro:macro name="arm_joint" params="name parent child z axis">
+    <joint name="${name}" type="revolute">
+      <parent link="${parent}"/>
+      <child link="${child}"/>
+      <origin xyz="0 0 ${z}"/>
+      <axis xyz="${axis}"/>
+      <limit lower="-1.5708" upper="1.5708" effort="2.0" velocity="2.0"/>
+    </joint>
+  </xacro:macro>
+
+  <link name="world"/>
+  <joint name="world_fixed" type="fixed">
+    <parent link="world"/>
+    <child link="base_link"/>
+  </joint>
+
+  <!-- Base -->
+  <link name="base_link">
+    <visual>
+      <origin xyz="0 0 ${base_h/2}"/>
+      <geometry><cylinder radius="${base_r}" length="${base_h}"/></geometry>
+      <material name="grey"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 ${base_h/2}"/>
+      <geometry><cylinder radius="${base_r}" length="${base_h}"/></geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0 0 ${base_h/2}"/>
+      <mass value="0.5"/>
+      <inertia ixx="${0.5*(3*base_r*base_r+base_h*base_h)/12}" ixy="0" ixz="0"
+               iyy="${0.5*(3*base_r*base_r+base_h*base_h)/12}" iyz="0"
+               izz="${0.5*base_r*base_r/2}"/>
+    </inertial>
+  </link>
+
+  <!-- Links -->
+  <xacro:box_link name="L1" h="${l1}" mass="0.2" color="blue"/>
+  <xacro:box_link name="L2" h="${l2}" mass="0.2" color="orange"/>
+  <xacro:box_link name="L3" h="${l3}" mass="0.15" color="blue"/>
+  <xacro:box_link name="end_effector" h="${ee}" mass="0.1" color="orange"/>
+
+  <!-- Joints -->
+  <xacro:arm_joint name="joint1" parent="base_link" child="L1" z="${base_h}" axis="0 0 1"/>
+  <xacro:arm_joint name="joint2" parent="L1" child="L2" z="${l1}" axis="0 1 0"/>
+  <xacro:arm_joint name="joint3" parent="L2" child="L3" z="${l2}" axis="0 1 0"/>
+  <xacro:arm_joint name="joint4" parent="L3" child="end_effector" z="${l3}" axis="0 1 0"/>
+
+
+  <!-- ros2_control for Gazebo -->
+  <xacro:macro name="arm_ctrl_joint" params="name">
+    <joint name="${name}">
+      <command_interface name="position"/>
+      <state_interface name="position"><param name="initial_value">0.0</param></state_interface>
+      <state_interface name="velocity"/>
+    </joint>
+  </xacro:macro>
+
+  <ros2_control name="GazeboSimSystem" type="system">
+    <hardware>
+      <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+    </hardware>
+    <xacro:arm_ctrl_joint name="joint1"/>
+    <xacro:arm_ctrl_joint name="joint2"/>
+    <xacro:arm_ctrl_joint name="joint3"/>
+    <xacro:arm_ctrl_joint name="joint4"/>
+  </ros2_control>
+
+  <gazebo>
+    <plugin filename="gz_ros2_control-system"
+            name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+      <parameters>$(find arm_gazebo)/config/controllers.yaml</parameters>
+    </plugin>
+  </gazebo>
+
+</robot>
