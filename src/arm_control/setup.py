@@ -25,9 +25,7 @@ setup(
     entry_points={
         'console_scripts': [
             'hardware_bridge = arm_control.hardware_bridge:main',
-            'hardware_bridge = arm_control.hardware_bridge:main',
             'slider_gui = arm_control.slider_gui:main',
-            'hardware_bridge = arm_control.hardware_bridge:main',
             'trajectory_publisher = arm_control.trajectory_publisher:main',
         ],
     },
